@@ -15,6 +15,7 @@ guard let tokenServerURL = URL(string: "http://localhost:8080/rtc/my-channel/pub
     return
 }
 ```
+<br>
 
 Next we need to make a request; for this I'm using [`URLRequest`](https://developer.apple.com/documentation/foundation/urlrequest). Set the request's httpMethod to `"GET"`, create the task and start it using the [`resume()`](https://developer.apple.com/documentation/foundation/urlsessiontask/1411121-resume) method as so:
 
@@ -28,6 +29,7 @@ let task = URLSession.shared.dataTask(with: request) { data, response, err in
 
 task.resume()
 ```
+<br>
 
 Inside the data task body is where we can fetch the returned token. We can put something like this:
 
@@ -46,9 +48,16 @@ if let responseDict = responseJSON as? [String: Any], let token = responseDict["
     print("the token is \(token)")
 }
 ```
-
+<br>
 Note that the main method may have already returned by the time the token reaches our device, so in the full example below I have added a [DispatchSemaphore](https://developer.apple.com/documentation/dispatch/dispatchsemaphore), which is used to hold on until we have the response. This way we can return the token straight from the method, but this will be blocking, so do not run this on the main thread if you don't have to.
 
+<br>
+
+---
+
+<br>
+
+## Full Example
 
 ```swift
 /// - Parameters:
@@ -94,3 +103,7 @@ func fetchRTCToken(domain: String, channelName: String, userId: UInt = 0) -> Str
 ```
 
 Be sure to make use of the other two parameters, response and err when adding this to your own project, as they are helpful for making sure the response from your token server is valid, and can let you know what may have gone wrong.
+
+---
+
+Try the file `Agora-Swift-Token.playground` to execute the above method on your own machine to see the token being retrieved from your server.
