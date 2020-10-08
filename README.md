@@ -1,4 +1,4 @@
-# Retrieving RTM Token with Swift
+# Fetching RTC/RTM Tokens with Swift
 
 When using the Agora platform, a good way to have a layer of security on your stream could be to add a token service.
 A previous article has been written on how to create a token server, [which can be found here](https://www.agora.io/en/blog/how-to-build-a-token-server-using-golang/). If you just want to launch a token server this GitHub repository has all the code laid out to do so already:
