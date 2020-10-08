@@ -62,7 +62,48 @@ Note that the main method may have already returned by the time the token reache
 
 ## Full Example
 
-<script src="https://gist.github.com/maxxfrazer/464fe2399e056b0502ce3cebd23441ad.js"></script>
+```swift
+/// - Parameters:
+///   - domain: Domain which is hosting the Agora Token Server (ie http://localhost:8080)
+///   - channelName: Name of the channel the token will allow the user to access
+///   - userId: User ID requesting to join the server. A value of 0 works for all users.
+/// - Returns: A new token which will expire in 24 Hours, or however specified by the token server.
+///            An empty string response means that this function has failed.
+func fetchRTCToken(domain: String, channelName: String, userId: UInt = 0) -> String {
+    // Construct the endpoint URL
+    guard let tokenServerURL = URL(string: "\(domain)/rtc/\(channelName)/publisher/uid/\(userId)/") else {
+        return ""
+    }
+    /// semaphore is used to wait for the request to complete, before returning the token.
+    let semaphore = DispatchSemaphore(value: 0)
+    var request = URLRequest(url: tokenServerURL, timeoutInterval: 10)
+    request.httpMethod = "GET"
+    var tokenToReturn = ""
+    
+    // Construct the GET request
+    let task = URLSession.shared.dataTask(with: request) { data, response, err in
+        defer {
+            // Signal that the request has completed
+            semaphore.signal()
+        }
+        guard let data = data else {
+            // No data, no token
+            return
+        }
+        let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
+        if let responseDict = responseJSON as? [String: Any], let token = responseDict["rtcToken"] as? String {
+            // Key "rtcToken" found in response, assigning to tokenToReturn
+            tokenToReturn = token
+        }
+    }
+    
+    task.resume()
+    
+    // Waiting for signal found inside the GET request handler
+    semaphore.wait()
+    return tokenToReturn
+}
+```
 
 Be sure to make use of the other two parameters, response and err when adding this to your own project, as they are helpful for making sure the response from your token server is valid, and can let you know what may have gone wrong.
 
