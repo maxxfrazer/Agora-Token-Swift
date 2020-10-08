@@ -16,7 +16,7 @@ guard let tokenServerURL = URL(string: "http://localhost:8080/rtc/my-channel/pub
 }
 ```
 
-Next we need to make a request; for this I'm using `[URLRequest](https://developer.apple.com/documentation/foundation/urlrequest)`. Set the request's httpMethod to `"GET"`, create the task and start it using the `[resume()](https://developer.apple.com/documentation/foundation/urlsessiontask/1411121-resume)` method as so:
+Next we need to make a request; for this I'm using [`URLRequest`](https://developer.apple.com/documentation/foundation/urlrequest). Set the request's httpMethod to `"GET"`, create the task and start it using the [`resume()`](https://developer.apple.com/documentation/foundation/urlsessiontask/1411121-resume) method as so:
 
 ```swift
 var request = URLRequest(url: tokenServerURL, timeoutInterval: 10)
