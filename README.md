@@ -1,14 +1,24 @@
-# Fetching RTC/RTM Tokens with Swift
+# Fetching RTC/RTM Tokens with Swift
+
+## Intro
 
 When using the Agora platform, a good way to have a layer of security on your stream could be to add a token service.
-A previous article has been written on how to create a token server, [which can be found here](https://www.agora.io/en/blog/how-to-build-a-token-server-using-golang/). If you just want to launch a token server this GitHub repository has all the code laid out to do so already:
+A previous article has been written on how to create a token server, [which can be found here](https://www.agora.io/en/blog/how-to-build-a-token-server-using-golang?utm_source=medium&utm_medium=blog&utm_campaign=Fetching_RTC%2FRTM_Tokens_with_Swift). If you just want to launch a token server this GitHub repository has all the code laid out to do so already:
 https://github.com/AgoraIO-Community/agora-token-service
 
 Once you have your token server set up, you now need to pull that into your application; this article quickly shows you how to achieve this in Swift.
 
+## Prerequisites
+- [Swift Tools](https://swift.org/download/#releases) (v5.0 and up)
+- [Agora Token Service](https://github.com/AgoraIO-Community/agora-token-service) (either local or remote)
+
+## Project Setup
+First set up the token service as found in the GitHub repository found in the prerequisites above.
+
 ## Fetching the Token
 
-First you need to determine the full URL to reach your token service. In my example, the service is running on the local machine, which is why I'm looking at localhost. I'm also using `my-channel` as the channel name, and `0` as the userId.
+You will need to determine the full URL to reach your token service. In my example, the service is running on the local machine, which is why I'm looking at `http://localhost:8080/…`<br>
+I'm also using `my-channel` as the channel name, and `0` as the userId.
 
 ```swift
 guard let tokenServerURL = URL(
@@ -19,19 +29,20 @@ guard let tokenServerURL = URL(
 ```
 <br>
 
-Next we need to make a request; for this I'm using [`URLRequest`](https://developer.apple.com/documentation/foundation/urlrequest). Set the request's httpMethod to `"GET"`, create the task and start it using the [`resume()`](https://developer.apple.com/documentation/foundation/urlsessiontask/1411121-resume) method as so:
+Next we need to make a request; for this I'm using [`URLRequest`](https://developer.apple.com/documentation/foundation/urlrequest) from [`Foundation`](https://developer.apple.com/documentation/foundation). Set the request's httpMethod to `"GET"`, create the task and start it using the [`resume()`](https://developer.apple.com/documentation/foundation/urlsessiontask/1411121-resume) method as such:
 
 ```swift
 var request = URLRequest(url: tokenServerURL, timeoutInterval: 10)
 request.httpMethod = "GET"
 
-let task = URLSession.shared.dataTask(with: request) { data, response, err in
+let task = URLSession.shared.dataTask(
+    with: request
+) { data, response, err in
     // data task body here
 }
 
 task.resume()
 ```
-<br>
 
 Inside the data task body is where we can fetch the returned token. We can put something like this:
 
@@ -42,12 +53,14 @@ guard let data = data else {
 }
 
 // parse response into json
-let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
+let responseJSON = try? JSONSerialization.jsonObject(
+    with: data, options: []
+) as? [String: Any]
 
 // check that json has key "rtcToken"
-if let responseDict = responseJSON as? [String: Any], let token = responseDict["rtcToken"] as? String {
-    // Key "rtcToken" found in response
-    print("the token is \(token)")
+if let token = responseJSON?["rtcToken"] as? String {
+    // Key "rtcToken" found in response, assigning to tokenToReturn
+    print("the token is: \(token)")
 }
 ```
 <br>
@@ -63,6 +76,9 @@ Note that the main method may have already returned by the time the token reache
 ## Full Example
 
 ```swift
+import Foundation
+import Dispatch
+
 /// - Parameters:
 ///   - domain: Domain which is hosting the Agora Token Server (ie http://localhost:8080)
 ///   - channelName: Name of the channel the token will allow the user to access
@@ -82,6 +98,7 @@ func fetchRTCToken(domain: String, channelName: String, userId: UInt = 0) -> Str
     
     // Construct the GET request
     let task = URLSession.shared.dataTask(with: request) { data, response, err in
+        // defer tells the function to run this when the method returns or otherwise finishes
         defer {
             // Signal that the request has completed
             semaphore.signal()
@@ -90,8 +107,8 @@ func fetchRTCToken(domain: String, channelName: String, userId: UInt = 0) -> Str
             // No data, no token
             return
         }
-        let responseJSON = try? JSONSerialization.jsonObject(with: data, options: [])
-        if let responseDict = responseJSON as? [String: Any], let token = responseDict["rtcToken"] as? String {
+        let responseJSON = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+        if let token = responseJSON?["rtcToken"] as? String {
             // Key "rtcToken" found in response, assigning to tokenToReturn
             tokenToReturn = token
         }
@@ -111,4 +128,4 @@ Be sure to make use of the other two parameters, response and err when adding th
 
 Try the file `Agora-Swift-Token.playground` to execute the above method on your own machine to see the token being retrieved from your server.
 
-Try the file Agora-Swift-Token.playground found in the [Agora-Token-Swift](https://github.com/maxxfrazer/Agora-Token-Swift) repository to execute the above method on your own machine to see the token being retrieved from your server.
+If you have Xcode installed, try the file Agora-Swift-Token.playground found in the [Agora-Token-Swift](https://github.com/maxxfrazer/Agora-Token-Swift) repository to execute the above method on your own machine to see the token being retrieved from your server.
