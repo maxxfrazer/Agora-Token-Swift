@@ -2,22 +2,32 @@
 
 ## Intro
 
+
 When using the Agora platform, a good way to have a layer of security on your stream could be to add a token service.
-A previous article has been written on how to create a token server, [which can be found here](https://www.agora.io/en/blog/how-to-build-a-token-server-using-golang?utm_source=medium&utm_medium=blog&utm_campaign=Fetching_RTC%2FRTM_Tokens_with_Swift). If you just want to launch a token server this GitHub repository has all the code laid out to do so already:
+In this tutorial, you will be shown how to fetch an Agora token from a web service running an Agora token server. 
+To jump straight to a full iOS app which requests a token from a specified Agora Token Server, see the following repository:
+https://github.com/maxxfrazer/Agora-iOS-Swift-Example
+
+
+## Prerequisites
+- An Agora Developer Account (see: [How To Get Started with Agora](https://www.agora.io/en/blog/how-to-get-started-with-agora?utm_source=medium&utm_medium=blog&utm_campaign=Fetching_RTC-RTM_Tokens_with_Swift))
+- A basic understanding of iOS development using Swift
+- Latest version of Xcode (see: [Xcode from Apple](https://developer.apple.com/xcode/))
+- An Agora token server, either local or remote (see: [Agora Token Service](https://github.com/AgoraIO-Community/agora-token-service))
+- A macOS or iOS app using the Agora macOS or iOS SDK respectively.
+
+## Project Setup
+
+A previous article has been written on how to create a token server, which can be found here. To quickly launch a token server, this GitHub repository has all the code laid out to do so already:
+
 https://github.com/AgoraIO-Community/agora-token-service
 
 Once you have your token server set up, you now need to pull that into your application; this article quickly shows you how to achieve this in Swift.
 
-## Prerequisites
-- [Swift Tools](https://swift.org/download/#releases) (v5.0 and up)
-- [Agora Token Service](https://github.com/AgoraIO-Community/agora-token-service) (either local or remote)
-
-## Project Setup
-First set up the token service as found in the GitHub repository found in the prerequisites above.
-
 ## Fetching the Token
 
-You will need to determine the full URL to reach your token service. In my example, the service is running on the local machine, which is why I'm looking at `http://localhost:8080/…`<br>
+
+You will need to determine the full URL to reach your token service. In my example, the service is running on the local machine, which is why I’m looking at `http://localhost:8080/…`<br>
 I'm also using `my-channel` as the channel name, and `0` as the userId.
 
 ```swift
@@ -29,7 +39,7 @@ guard let tokenServerURL = URL(
 ```
 <br>
 
-Next we need to make a request; for this I'm using [`URLRequest`](https://developer.apple.com/documentation/foundation/urlrequest) from [`Foundation`](https://developer.apple.com/documentation/foundation). Set the request's httpMethod to `"GET"`, create the task and start it using the [`resume()`](https://developer.apple.com/documentation/foundation/urlsessiontask/1411121-resume) method as such:
+Next we need to make a request; for this I'm using [`URLRequest`](https://developer.apple.com/documentation/foundation/urlrequest) from [`Foundation`](https://developer.apple.com/documentation/foundation). Set the request's httpMethod to `"GET"`, create the task using `URLSession.shared.dataTask` then start the task using `task.`[`resume()`](https://developer.apple.com/documentation/foundation/urlsessiontask/1411121-resume), as such:
 
 ```swift
 var request = URLRequest(url: tokenServerURL, timeoutInterval: 10)
